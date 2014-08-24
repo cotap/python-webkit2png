@@ -266,6 +266,7 @@ class _WebkitRendererHelper(QObject):
             if self.logger: self.logger.warning("Failed to load %s" % url)
 
         # Set initial viewport (the size of the "window")
+        self._page.setPreferredContentsSize(QSize(1, 1))
         size = self._page.mainFrame().contentsSize()
         if self.logger: self.logger.debug("contentsSize: %s", size)
         if width > 0:
