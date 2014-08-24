@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser.add_option("-F", "--feature", dest="features", action="append", type="choice",
                       choices=["javascript", "plugins"],
                       help="Enable additional Webkit features ('javascript', 'plugins')", metavar="FEATURE")
-    parser.add_option("-c", "--cookie", dest="cookies", action="append", 
+    parser.add_option("-c", "--cookie", dest="cookies", action="append",
                       help="Add this cookie. Use multiple times for more cookies. Specification is value of a Set-Cookie HTTP response header.", metavar="COOKIE")
     parser.add_option("-w", "--wait", dest="wait", default=0, type="int",
                       help="Time to wait after loading before the screenshot is taken [default: %default]", metavar="SECONDS")
