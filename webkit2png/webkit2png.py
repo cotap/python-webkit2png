@@ -55,6 +55,7 @@ class WebkitRenderer(QObject):
         self.height = kwargs.get('height', 0)
         self.timeout = kwargs.get('timeout', 0)
         self.wait = kwargs.get('wait', 0)
+        self.allowLoadFailure = kwargs.get('allowLoadFailure', False)
         self.scaleToWidth = kwargs.get('scaleToWidth', 0)
         self.scaleToHeight = kwargs.get('scaleToHeight', 0)
         self.scaleRatio = kwargs.get('scaleRatio', 'keep')
@@ -244,7 +245,8 @@ class _WebkitRendererHelper(QObject):
         # "loadFinished(bool)" raised.
         cancelAt = time.time() + timeout
         self.__loading = True
-        self.__loadingResult = False # Default
+        self.__loadingResult = None
+        self.__loadingUrl = url
         if self.encodedUrl:
             qtUrl = QUrl.fromEncoded(url)
         else:
@@ -260,10 +262,13 @@ class _WebkitRendererHelper(QObject):
             while QApplication.hasPendingEvents() and self.__loading:
                 QCoreApplication.processEvents()
 
-        if self.logger: self.logger.debug("Processing result")
+        if self.__loadingResult == False or self.__loadingResult == None:
+            if self.allowLoadFailure:
+                if self.logger: self.logger.warning("Failed to load %s" % url)
+            else:
+                raise RuntimeError("Failed to load %s" % url)
 
-        if self.__loading_result == False:
-            if self.logger: self.logger.warning("Failed to load %s" % url)
+        if self.logger: self.logger.debug("Processing result")
 
         # Set initial viewport (the size of the "window")
         self._page.setPreferredContentsSize(QSize(1, 1))
@@ -296,10 +301,13 @@ class _WebkitRendererHelper(QObject):
         return qImage
 
     def _on_each_reply(self,reply):
-      """
-      Logs each requested uri
-      """
-      self.logger.debug("Received %s" % (reply.url().toString()))
+        """
+        Logs each requested uri
+        """
+        url = reply.url().toString()
+        self.logger.debug("Received %s" % url)
+        if url == self.__loadingUrl and reply.error():
+            self.__loadingResult = False
 
     # Eventhandler for "loadStarted()" signal
     def _on_load_started(self):
@@ -312,11 +320,12 @@ class _WebkitRendererHelper(QObject):
     # Eventhandler for "loadFinished(bool)" signal
     def _on_load_finished(self, result):
         """Slot that sets the '__loading' property to false and stores
-        the result code in '__loading_result'.
+        the result code in '__loadingResult'.
         """
         if self.logger: self.logger.debug("loading finished with result %s", result)
         self.__loading = False
-        self.__loading_result = result
+        if self.__loadingResult is None:
+            self.__loadingResult = result
 
     # Eventhandler for "sslErrors(QNetworkReply *,const QList<QSslError>&)" signal
     def _on_ssl_errors(self, reply, errors):

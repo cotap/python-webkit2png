@@ -109,6 +109,8 @@ if __name__ == '__main__':
                       help="Time to wait after loading before the screenshot is taken [default: %default]", metavar="SECONDS")
     parser.add_option("-t", "--timeout", dest="timeout", default=0, type="int",
                       help="Time before the request will be canceled [default: %default]", metavar="SECONDS")
+    parser.add_option("-a", "--allow-failure", action="store_true", dest="allowLoadFailure",
+                      help="Allow page-load failure.", default=False, )
     parser.add_option("-W", "--window", dest="window", action="store_true",
                       help="Grab whole window instead of frame (may be required for plugins)", default=False)
     parser.add_option("-T", "--transparent", dest="transparent", action="store_true",
@@ -182,6 +184,7 @@ if __name__ == '__main__':
             renderer.height = options.geometry[1]
             renderer.timeout = options.timeout
             renderer.wait = options.wait
+            renderer.allowLoadFailure = options.allowLoadFailure
             renderer.format = options.format
             renderer.grabWholeWindow = options.window
             renderer.renderTransparentBackground = options.transparent
